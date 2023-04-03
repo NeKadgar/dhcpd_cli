@@ -10,10 +10,16 @@ class ConfParser:
     DENY_BOOTING_PATTERN = r"deny\sbooting"
 
     @staticmethod
-    def _is_all_brackets_closed(lines) -> bool:
-        if len(lines) < 2:
-            return False
-        return lines.count("{") == lines.count("}")
+    def _is_all_brackets_closed(lines: str) -> bool:
+        count = 0
+        for char in lines:
+            if char == '{':
+                count += 1
+            elif char == '}':
+                count -= 1
+                if count < 0:
+                    return False
+        return count == 0
 
     @classmethod
     def get_host_matches(cls, lines: str) -> Iterable[re.Match]:
