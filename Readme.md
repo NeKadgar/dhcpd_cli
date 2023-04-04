@@ -21,6 +21,12 @@ python main.py --file dhcpd.conf --rm srv1 srv2 srv3
 ```
 This command removes the specified hosts (srv1, srv2, and srv3) from the dhcpd.conf file.
 
+### Refactor file:
+```shell
+python main.py --file dhcpd.conf --refactor
+```
+This command fix all the spaces in the dhcpd.conf file and create backup of original file.
+
 ## To run tests use:
 ```shell
 python -m unittest discover -s tests/
