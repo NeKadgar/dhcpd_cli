@@ -21,11 +21,31 @@ python main.py --file dhcpd.conf --rm srv1 srv2 srv3
 ```
 This command removes the specified hosts (srv1, srv2, and srv3) from the dhcpd.conf file.
 
+## Optional: 
+You can combine optional flags with any command you want to use.
+Example of use:
+```shell
+python main.py --file dhcpd.conf --add --backup --sort --refactor
+```
+This command create backup file before any operation, after shows CLI to add new host and after sort all the hosts and fixes a whitespaces.
+
 ### Refactor file:
 ```shell
 python main.py --file dhcpd.conf --refactor
 ```
-This command fix all the spaces in the dhcpd.conf file and create backup of original file.
+This command fix all the spaces in the dhcpd.conf file.
+
+### Sort hosts in file:
+```shell
+python main.py --file dhcpd.conf --sort
+```
+This command sort by name all hosts in file, if host have any child hosts they will be placed right after parent.
+
+### Create backup file:
+```shell
+python main.py --file dhcpd.conf --backup
+```
+This command create filename.backup file that contains a version before any changes.
 
 ## To run tests use:
 ```shell

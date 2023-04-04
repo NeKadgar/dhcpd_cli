@@ -69,6 +69,10 @@ class Host:
         return f"<{params}>"
 
 
+class HostWithoutMother(Exception):
+    ...
+
+
 class Hosts(UserList):
     def __init__(self, iterable: Iterable | None = None):
         iterable = [] if iterable is None else iterable
@@ -85,13 +89,25 @@ class Hosts(UserList):
                 hosts.append(host)
 
         while child_hosts:
+            parent_found = False
             child_host = child_hosts.pop()
             parent_name = child_host.name.split("alt")[0]
             for host in hosts:
                 if host.name == parent_name:
+                    parent_found = True
                     host.child_hosts.append(child_host)
+
+            if not parent_found:
+                raise HostWithoutMother(f"{child_host.name} has no mother!")
+
         self.data = hosts
         self.is_nested = True
+
+    def sort_hosts_by_name(self, sort_child=False):
+        self.sort(key=lambda x: x.name)
+        if sort_child:
+            for host in self.data:
+                host.child_hosts.sort(key=lambda x: x.name)
 
     def find_by_name(self, name: str) -> Host | None:
         for host in self.data:
@@ -105,10 +121,7 @@ class Hosts(UserList):
         return None
 
 
-def get_all_hosts_from_file(filename: str) -> Hosts:
-    with open(filename) as f:
-        lines = f.read()
-
+def get_all_hosts_from_config_lines(lines: str) -> Hosts:
     all_hosts = Hosts()
     for re_host in ConfParser.get_host_matches(lines):
         start_brackets_pointer, end_brackets_pointer = ConfParser.get_host_boundaries(re_host, lines)
@@ -147,10 +160,12 @@ def save_host_changes(filename: str, host: Host, use_raw: bool = False):
 
 def add_host(filename: str, host: Host, use_raw: bool = False):
     with open(filename, "a+") as f:
-        f.seek(0, 2)
-        f.seek(f.tell() - 1)
-
-        start_symbol = "\n" if f.read(1) == "\n" else ""
+        try:
+            f.seek(0, 2)
+            f.seek(f.tell() - 1)
+            start_symbol = "\n" if f.read(1) == "\n" else ""
+        except ValueError:
+            start_symbol = ""
         f.write(f"{start_symbol}{host.get_config_string(use_raw)}\n")
 
 

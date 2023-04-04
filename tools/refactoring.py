@@ -13,6 +13,10 @@ def add_necessary_spaces(text: str) -> str:
     return text
 
 
+def normalize_new_lines(text: str) -> str:
+    return re.sub(r'(\n{2,})', r'\n', text)
+
+
 def normalize_text(text: str) -> str:
     return add_necessary_spaces(
         normalize_whitespaces(text)

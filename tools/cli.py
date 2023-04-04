@@ -1,8 +1,9 @@
 from typing import List
 
-from host import get_all_hosts_from_file, Host, add_host, delete_host_names, save_host_changes, EmptyRawError
+from host import get_all_hosts_from_config_lines, Host, add_host, delete_host_names, save_host_changes, EmptyRawError
+from parser import ConfParser
 from tools.input import multiple_line_input
-from tools.refactoring import normalize_text
+from tools.refactoring import normalize_text, normalize_new_lines
 from tools.validators import validate_new_hostname, validate_ethernet, validate_host_pattern_option, validate_filename, \
     validate_ipv4_address
 
@@ -41,9 +42,12 @@ def _get_fixed_addr():
 
 
 def add_new_host_with_cli(filename: str):
+    with open(filename) as f:
+        lines = f.read()
+
+    hosts = get_all_hosts_from_config_lines(lines)
     while True:
         hostname = input("Hostname: ").strip()
-        hosts = get_all_hosts_from_file(filename)
         try:
             validate_new_hostname(hostname, hosts)
             break
@@ -92,7 +96,10 @@ def add_new_host_with_cli(filename: str):
 
 
 def update_host_with_cli(filename: str, hostname: str):
-    hosts = get_all_hosts_from_file(filename)
+    with open(filename) as f:
+        lines = f.read()
+
+    hosts = get_all_hosts_from_config_lines(lines)
     host = hosts.find_by_name(hostname)
 
     if host is None:
@@ -166,7 +173,10 @@ def update_host_with_cli(filename: str, hostname: str):
 
 
 def remove_hosts_from_file(filename: str, host_names: List[str]):
-    hosts = get_all_hosts_from_file(filename)
+    with open(filename) as f:
+        lines = f.read()
+
+    hosts = get_all_hosts_from_config_lines(lines)
     for hostname in host_names:
         if hosts.find_by_name(hostname) is None:
             raise ValueError(f"Host {hostname} do not exist!")
@@ -177,8 +187,6 @@ def refactor_config_file(filename: str):
     # read config and create backup file
     with open(filename, "r") as f:
         lines = f.read()
-        with open(f"{filename}.backup", "w") as backup_file:
-            backup_file.write(lines)
 
     normalized = normalize_text(lines)
 
@@ -214,3 +222,25 @@ def refactor_config_file(filename: str):
 
     with open(filename, "w") as f:
         f.write(new_lines)
+
+
+def sort_hosts_in_file(filename: str):
+    with open(filename, "r") as f:
+        lines = f.read()
+
+    hosts = get_all_hosts_from_config_lines(lines)
+    hosts.make_nested()
+    hosts.sort_hosts_by_name(sort_child=True)
+    new_host_lines = ""
+    for host in hosts:
+        re_host = ConfParser.get_host_match(host.name, lines)
+        *_, end = ConfParser.get_host_boundaries(re_host, lines)
+        new_host_lines += f"\n\n{lines[re_host.start(): end]}"
+        lines = lines[:re_host.start()] + lines[end:]
+        for child_host in host.child_hosts:
+            re_child_host = ConfParser.get_host_match(child_host.name, lines)
+            *_, end = ConfParser.get_host_boundaries(re_child_host, lines)
+            new_host_lines += f"\n\n{lines[re_child_host.start(): end]}"
+            lines = lines[:re_child_host.start()] + lines[end:]
+    with open(filename, "w") as f:
+        f.write(f"{normalize_new_lines(lines)}{new_host_lines}\n")

@@ -91,7 +91,7 @@ class TestUpdateHostWithCli(unittest.TestCase):
 
     def test_update_ethernet(self):
         with patch('builtins.input', side_effect=['1', '12:12:12:12:12:12', '7']):
-            with patch('tools.cli.get_all_hosts_from_file', return_value=self.hosts):
+            with patch('tools.cli.get_all_hosts_from_config_lines', return_value=self.hosts):
                 with patch('tools.cli.save_host_changes') as save_changes:
                     update_host_with_cli(self.temp_file.name, self.host2.name)
                     self.assertEqual(self.host2.ethernet, '12:12:12:12:12:12')
@@ -99,7 +99,7 @@ class TestUpdateHostWithCli(unittest.TestCase):
 
     def test_toggle_deny_booting__to_true(self):
         with patch('builtins.input', side_effect=['2', '7']):
-            with patch('tools.cli.get_all_hosts_from_file', return_value=self.hosts):
+            with patch('tools.cli.get_all_hosts_from_config_lines', return_value=self.hosts):
                 with patch('tools.cli.save_host_changes') as save_changes:
                     update_host_with_cli(self.temp_file.name, self.host2.name)
                     self.assertTrue(self.host2.is_deny_booting)
@@ -111,7 +111,7 @@ class TestUpdateHostWithCli(unittest.TestCase):
         fixed_addr = "12.12.12.12"
         with patch('builtins.input',
                    side_effect=['2', condition_true_filename, condition_false_filename, fixed_addr, '7']):
-            with patch('tools.cli.get_all_hosts_from_file', return_value=self.hosts):
+            with patch('tools.cli.get_all_hosts_from_config_lines', return_value=self.hosts):
                 with patch('tools.cli.save_host_changes') as save_changes:
                     update_host_with_cli(self.temp_file.name, self.host4.name)
                     self.assertFalse(self.host4.is_deny_booting)
@@ -123,7 +123,7 @@ class TestUpdateHostWithCli(unittest.TestCase):
     def test_change_condition_true_filename(self):
         condition_true_filename = "/dev/condition_true_filename.txt"
         with patch('builtins.input', side_effect=['3', condition_true_filename, '7']):
-            with patch('tools.cli.get_all_hosts_from_file', return_value=self.hosts):
+            with patch('tools.cli.get_all_hosts_from_config_lines', return_value=self.hosts):
                 with patch('tools.cli.save_host_changes') as save_changes:
                     update_host_with_cli(self.temp_file.name, self.host1.name)
                     self.assertEqual(self.host1.condition_true_filename, condition_true_filename)
@@ -132,7 +132,7 @@ class TestUpdateHostWithCli(unittest.TestCase):
     def test_change_condition_false_filename(self):
         condition_false_filename = "/dev/condition_false_filename.txt"
         with patch('builtins.input', side_effect=['4', condition_false_filename, '7']):
-            with patch('tools.cli.get_all_hosts_from_file', return_value=self.hosts):
+            with patch('tools.cli.get_all_hosts_from_config_lines', return_value=self.hosts):
                 with patch('tools.cli.save_host_changes') as save_changes:
                     update_host_with_cli(self.temp_file.name, self.host1.name)
                     self.assertEqual(self.host1.condition_false_filename, condition_false_filename)
@@ -141,7 +141,7 @@ class TestUpdateHostWithCli(unittest.TestCase):
     def test_change_fixed_addr(self):
         fixed_addr = "255.255.255.255"
         with patch('builtins.input', side_effect=['5', fixed_addr, '7']):
-            with patch('tools.cli.get_all_hosts_from_file', return_value=self.hosts):
+            with patch('tools.cli.get_all_hosts_from_config_lines', return_value=self.hosts):
                 with patch('tools.cli.save_host_changes') as save_changes:
                     update_host_with_cli(self.temp_file.name, self.host1.name)
                     self.assertEqual(self.host1.fixed_addr, fixed_addr)
@@ -151,7 +151,7 @@ class TestUpdateHostWithCli(unittest.TestCase):
         fixed_addr = "255.255.255.255"
         wrong_fixed_addr = "255.255.255.256"
         with patch('builtins.input', side_effect=['5', wrong_fixed_addr, fixed_addr, '7']):
-            with patch('tools.cli.get_all_hosts_from_file', return_value=self.hosts):
+            with patch('tools.cli.get_all_hosts_from_config_lines', return_value=self.hosts):
                 with patch('tools.cli.save_host_changes') as save_changes:
                     update_host_with_cli(self.temp_file.name, self.host1.name)
                     self.assertEqual(self.host1.fixed_addr, fixed_addr)
@@ -174,7 +174,7 @@ class TestUpdateHostWithCli(unittest.TestCase):
                 fixed-address {new_address};
                 {options}
             """):
-                with patch('tools.cli.get_all_hosts_from_file', return_value=self.hosts):
+                with patch('tools.cli.get_all_hosts_from_config_lines', return_value=self.hosts):
                     with open(self.temp_file.name, "r") as f:
                         lines = f.read()
                     self.assertNotIn(options, lines)
@@ -219,7 +219,7 @@ class TestUpdateHostWithCli(unittest.TestCase):
                 fixed-address {new_address};
                 {options}
             """):
-                with patch('tools.cli.get_all_hosts_from_file', return_value=self.hosts):
+                with patch('tools.cli.get_all_hosts_from_config_lines', return_value=self.hosts):
                     update_host_with_cli(self.temp_file.name, self.host1.name)
                     with open(self.temp_file.name, "r") as f:
                         lines = f.read()
