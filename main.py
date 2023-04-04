@@ -1,7 +1,7 @@
 import os
 import argparse
 
-from tools.cli import add_new_host_with_cli, remove_hosts_from_file, update_host_with_cli
+from tools.cli import add_new_host_with_cli, remove_hosts_from_file, update_host_with_cli, refactor_config_file
 
 
 if __name__ == "__main__":
@@ -12,6 +12,7 @@ if __name__ == "__main__":
     add_upd_rm_group.add_argument('--add', action='store_true', help='Add new host')
     add_upd_rm_group.add_argument('--update', type=str, help='Update hostname')
     add_upd_rm_group.add_argument('--rm', nargs='+', type=str, help='Host names to be removed')
+    add_upd_rm_group.add_argument('--refactor', action='store_true', help='Refactor file')
     args = parser.parse_args()
 
     if not os.path.exists(args.file):
@@ -23,3 +24,5 @@ if __name__ == "__main__":
         remove_hosts_from_file(args.file, args.rm)
     elif args.update:
         update_host_with_cli(args.file, args.update)
+    elif args.refactor:
+        refactor_config_file(args.file)

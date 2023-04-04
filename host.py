@@ -31,8 +31,7 @@ class Host:
     def get_config_body(self, use_raw: bool = False):
         if use_raw:
             return self._get_raw()
-        options = "deny booting;" if self.is_deny_booting else f"""
-    if option arch = 00:07 {{
+        options = "\tdeny booting;" if self.is_deny_booting else f"""if option arch = 00:07 {{
         filename "{self.condition_true_filename}";
     }} else {{
         filename "{self.condition_false_filename}";
@@ -40,10 +39,8 @@ class Host:
     fixed-address {self.fixed_addr};
     """
 
-        return f"""
-    hardware ethernet {self.ethernet};
-    {options}
-    """
+        return f"""hardware ethernet {self.ethernet};
+    {options}"""
 
     def get_config_string(self, use_raw: bool = False):
         return f"""host {self.name} {{
@@ -149,8 +146,12 @@ def save_host_changes(filename: str, host: Host, use_raw: bool = False):
 
 
 def add_host(filename: str, host: Host, use_raw: bool = False):
-    with open(filename, "a") as f:
-        f.write(f"\n{host.get_config_string(use_raw)}")
+    with open(filename, "a+") as f:
+        f.seek(0, 2)
+        f.seek(f.tell() - 1)
+
+        start_symbol = "\n" if f.read(1) == "\n" else ""
+        f.write(f"{start_symbol}{host.get_config_string(use_raw)}\n")
 
 
 def delete_host(filename: str, host: Host):

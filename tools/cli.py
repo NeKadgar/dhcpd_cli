@@ -2,6 +2,7 @@ from typing import List
 
 from host import get_all_hosts_from_file, Host, add_host, delete_host_names, save_host_changes, EmptyRawError
 from tools.input import multiple_line_input
+from tools.refactoring import normalize_text
 from tools.validators import validate_new_hostname, validate_ethernet, validate_host_pattern_option, validate_filename, \
     validate_ipv4_address
 
@@ -170,3 +171,46 @@ def remove_hosts_from_file(filename: str, host_names: List[str]):
         if hosts.find_by_name(hostname) is None:
             raise ValueError(f"Host {hostname} do not exist!")
     delete_host_names(filename, host_names)
+
+
+def refactor_config_file(filename: str):
+    # read config and create backup file
+    with open(filename, "r") as f:
+        lines = f.read()
+        with open(f"{filename}.backup", "w") as backup_file:
+            backup_file.write(lines)
+
+    normalized = normalize_text(lines)
+
+    new_lines = ""
+    tabs_count = 0
+    for word in normalized.split():
+        if word in ["host", "subnet"]:
+            new_lines += "\n"
+
+        if new_lines and new_lines[-1] == "\n":
+            new_lines += "\t" * tabs_count
+
+        if word == "{":
+            tabs_count += 1
+            new_lines += f"{word}\n"
+            continue
+
+        if word == "}":
+            if new_lines[-1] == "\t":
+                new_lines = new_lines[:-1]
+            tabs_count -= 1
+            new_lines += f"{word}\n"
+            continue
+
+        if ";" in word:
+            new_lines += f"{word}\n"
+            continue
+
+        if word == "deny":
+            new_lines += "\t"
+
+        new_lines += f"{word} "
+
+    with open(filename, "w") as f:
+        f.write(new_lines)
